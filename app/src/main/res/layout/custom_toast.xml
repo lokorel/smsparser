@@ -1,0 +1,46 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/layout_bg"
+    android:orientation="horizontal"
+    >
+
+    <TableLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" >
+
+            <TextView
+                android:id="@+id/SMSText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/ToastText"
+                android:letterSpacing="0.1"
+                android:textColor="@color/ToastText"
+                android:textSize="42sp"
+                android:textStyle="bold"
+                android:paddingLeft="10sp"
+                android:paddingRight="10sp"/>
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" >
+
+            <TextView
+                android:id="@+id/SMSFrom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/ToastFrom"
+                android:textAlignment="textEnd"
+                android:textSize="9sp"
+                android:paddingRight="10sp"
+                android:paddingBottom="10sp"
+                />
+        </TableRow>
+    </TableLayout>
+
+</LinearLayout>

@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">smsparser</string>
+    <string name="ToastText">0000</string>
+    <string name="ToastFrom">name</string>
+</resources>
