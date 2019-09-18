@@ -1,22 +1,25 @@
 package com.pavlov.smsparser;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
 
-public class MainActivity extends Activity implements ServiceCallbacks {
-    private MyService myService;
-    private Intent serviceIntent;
+
+public class MainActivity extends AppCompatActivity implements ServiceCallbacks {
+    private SMSService SMSService;
+    private Intent SMSserviceIntent;
+    private Intent PUSHserviceIntent;
     private int serviceState = SMSPARSER_SERVICE_DISCONNECT;
     private SessionManager sessionManager;
+    private String[] permissions = new String[]{Manifest.permission.RECEIVE_SMS,Manifest.permission.FOREGROUND_SERVICE,Manifest.permission.BIND_NOTIFICATION_LISTENER_SERVICE};
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,8 +27,10 @@ public class MainActivity extends Activity implements ServiceCallbacks {
         setContentView(R.layout.activity_main);
 
 
-        serviceIntent = new Intent(this, MyService.class);
+        SMSserviceIntent = new Intent(this, SMSService.class);
+        PUSHserviceIntent = new Intent(this, PUSHService.class);
         sessionManager = new SessionManager(this);
+
     }
 
 
@@ -33,19 +38,19 @@ public class MainActivity extends Activity implements ServiceCallbacks {
 
         @Override
         public void onServiceConnected(ComponentName className, IBinder service) {
-            // cast the IBinder and get MyService instance
-            MyService.LocalBinder binder = (MyService.LocalBinder) service;
-            myService = binder.getService();
+            // cast the IBinder and get SMSService instance
+            SMSService.LocalBinder binder = (SMSService.LocalBinder) service;
+            SMSService = binder.getService();
             serviceState = SMSPARSER_SERVICE_CONNECTED;
-            myService.setCallbacks(MainActivity.this);
-            OnServiceStateChange(true);
+            SMSService.setCallbacks(MainActivity.this);
+            if (null != SMSService)  OnServiceStateChange(true);
         }
 
         @Override
         public void onServiceDisconnected(ComponentName arg0) {
             serviceState = SMSPARSER_SERVICE_DISCONNECT;
             OnServiceStateChange(false);
-            myService.setCallbacks(null);
+            SMSService.setCallbacks(null);
         }
     };
 
@@ -54,46 +59,43 @@ public class MainActivity extends Activity implements ServiceCallbacks {
     {
         super.onStart();
         serviceState=SMSPARSER_SERVICE_AVAITING;
-        bindService(serviceIntent, serviceConnection, 0);
+        bindService(SMSserviceIntent, serviceConnection, 0);
     }
 
     @Override
     public void onStop()
     {
-        //unbindService(serviceConnection);
         super.onStop();
+
     }
 
     // Start the service
     public void startService(View view) {
-        if (this.checkSelfPermission( Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED) {
-            this.requestPermissions(new String[]{Manifest.permission.RECEIVE_SMS}, 0);
-        }
-        if (this.checkSelfPermission(Manifest.permission.FOREGROUND_SERVICE) != PackageManager.PERMISSION_GRANTED) {
-            this.requestPermissions( new String[]{Manifest.permission.FOREGROUND_SERVICE}, 0);
-        }
+
+        this.requestPermissions(permissions, 0);
+
         sessionManager.setParam("regexp_pattern", getRegExpPattern());
-        if(null == myService || serviceState==SMSPARSER_SERVICE_DISCONNECT)
+        if(null == SMSService || serviceState==SMSPARSER_SERVICE_DISCONNECT)
         {
-            startForegroundService(serviceIntent);
+            startForegroundService(SMSserviceIntent);
         }
         if (serviceState==SMSPARSER_SERVICE_DISCONNECT) {
-            bindService(serviceIntent, serviceConnection, 0);
+            bindService(SMSserviceIntent, serviceConnection, 0);
         }
-
     }
+
     // Stop the service
     public void stopService(View view) {
 
         if (serviceState == SMSPARSER_SERVICE_CONNECTED) {
             unbindService(serviceConnection);
             serviceState = SMSPARSER_SERVICE_DISCONNECT;
-            myService.setCallbacks(null);
+            SMSService.setCallbacks(null);
         }
 
-        if (null != myService) {
+        if (null != SMSService) {
             OnServiceStateChange(false);
-            stopService(serviceIntent);
+            stopService(SMSserviceIntent);
         }
     }
 
@@ -111,5 +113,6 @@ public class MainActivity extends Activity implements ServiceCallbacks {
         TextView fld = this.findViewById(R.id.txtRegExpPattern);
         return fld.getText().toString();
     }
+
 
 }
